@@ -1,11 +1,9 @@
 package com.nandi.util;
 
-
-
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,21 +25,16 @@ public class S3Util {
 
 	public String saveFile(MultipartFile file) {
 		String originalFilename = file.getOriginalFilename();
-		try {
-			File file1 = convertMultiPartToFile(file);
-			PutObjectResult putObjectResult = s3.putObject(bucketName, originalFilename, file1);
+
+		try (InputStream inputStream = file.getInputStream()) {
+			ObjectMetadata metadata = new ObjectMetadata();
+			metadata.setContentLength(file.getSize());
+			metadata.setContentType(file.getContentType());
+
+			PutObjectResult putObjectResult = s3.putObject(bucketName, originalFilename, inputStream, metadata);
 			return putObjectResult.getContentMd5();
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException("Failed to save file: " + originalFilename, e);
 		}
 	}
-
-	private File convertMultiPartToFile(MultipartFile file) throws IOException {
-		File convFile = new File(file.getOriginalFilename());
-		FileOutputStream fos = new FileOutputStream(convFile);
-		fos.write(file.getBytes());
-		fos.close();
-		return convFile;
-	}
-
 }

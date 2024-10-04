@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.nandi.service.PersonService;
+import com.nandi.service.Service;
 
 @RestController
-@RequestMapping(name="/img")
-public class PersonController {
+@RequestMapping
+public class Controller {
 	
 	@Autowired
-	private PersonService impl;
+	private Service impl;
 
 	@GetMapping("/")
 	public String loadForm() {
@@ -27,14 +27,11 @@ public class PersonController {
 	public String handleUploadForm(Model model, @RequestParam("file") MultipartFile multipart) {
 		String message = "";
 		try {
-			impl.handleUploadForm(multipart);
-			message = "Your file has been uploaded successfully!";
+			message = impl.handleUploadForm(multipart);
 		} catch (Exception ex) {
 			message = "Error uploading file: " + ex.getMessage();
 		}
 		model.addAttribute("message", message);
-		return "message";
+		return message;
 	}
-
-	
 }
